@@ -263,5 +263,67 @@ app.get("/restaurant/:id/revenue", async (c) => {
   }
 });
 
+app.get("/menu/top-items", async (context) => {
+  try {
+    const topItems = await prisma.orderItem.groupBy({
+      by: ["menuItemId"],
+      _count: {
+        menuItemId: true,
+      },
+      orderBy: {
+        _count: {
+          menuItemId: "desc",
+        },
+      },
+      take: 1, 
+    });
+
+    if (topItems.length === 0) {
+      return context.json({ message: "No menu items found" }, 404);
+    }
+
+    const topMenuItem = await prisma.menuItem.findUnique({
+      where: { id: topItems[0].menuItemId },
+    });
+
+    return context.json(topMenuItem, 200);
+  } catch (error) {
+    console.error("Error retrieving top menu item", error);
+    return context.json({ message: "Error retrieving top menu item" }, 500);
+  }
+});
+
+app.get("/customers/:id/orders", async (context) => {
+  const id = context.req.param("id");
+  try {
+    const customer = await prisma.customers.findUnique({
+      where: {
+        id:Number(id) },
+    });
+
+    if (!customer) {
+      return context.json({ message: "Customer not found" }, 404);
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { customerId: Number(id) },
+      include: {
+        Restaurant: true,
+        orderItem: {
+          include: {
+            MenuItem: true,
+          },
+        },
+      },
+    });
+
+    return context.json(orders, 200);
+  } catch (error) {
+    console.error("Error retrieving orders", error);
+    return context.json({ message: "Error retrieving orders" }, 500);
+  }
+});
+
+
 serve(app)
 console.log(`Server is running on http://localhost:${3000}`)
