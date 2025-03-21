@@ -221,5 +221,19 @@ app.patch("/orders/:id/status", async (c) => {
   }
 })
 
+app.get("/customers/:id/orders", async (c)=>{
+  const {id} = c.req.param();
+  try{
+  const orders = await prisma.order.findMany({
+    where: {
+      customerId: Number(id),
+    },
+  });
+  return c.json(orders)}
+  catch(error){
+    return c.json({ message: "Error finding order" }, 404);
+  }
+})
+
 serve(app)
 console.log(`Server is running on http://localhost:${3000}`)
