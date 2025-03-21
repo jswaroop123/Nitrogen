@@ -114,5 +114,74 @@ app.patch("/menuItem/:id", async (c) => {
   }
 });
 
+app.post("/orders", async (c) => {
+  try {
+    const { id,customerId, restaurantId, items } = await c.req.json();
+
+    // Validate customer and restaurant
+    const customer = await prisma.customers.findUnique({
+      where: { id: Number(customerId) },
+    });
+    const restaurant = await prisma.restaurants.findUnique({
+      where: { id: Number(restaurantId) },
+    });
+
+    if (!customer) return c.json({ message: "Customer does not exist" }, 400);
+    if (!restaurant)
+      return c.json({ message: "Restaurant does not exist" }, 400);
+
+    //  Create an Order
+    const order = await prisma.order.create({
+      data: { customerId, restaurantId, totalPrice: 0 },
+    });
+
+    let totalPrice = 0;
+
+    for (const item of items) {
+      const menuItem = await prisma.menuItem.findUnique({
+        where: { id: Number(item.menuItemId) },
+      });
+
+      if (!menuItem || !menuItem.isAvailable) {
+        return c.json(
+          {
+            message: `Menu item ID ${item.menuItemId} not found or unavailable`,
+          },
+          400
+        );
+      }
+
+      const itemTotal = Number(menuItem.price) * item.quantity;
+      totalPrice += itemTotal;
+
+      // Create OrderItem table
+      await prisma.orderItem.create({
+        data: {
+          
+        id:Number(id),
+          orderId: order.id,
+          menuItemId: menuItem.id,
+          quantity: item.quantity,
+        },
+      });
+    }
+
+    // Step 3: Update  totalPrice
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        totalPrice: totalPrice,
+        status: "PLACED",
+      },
+    });
+
+    return c.json({ message: updatedOrder }, 201);
+  } catch (error) {
+    console.error(error);
+    return c.json({ message: "Failed to place order" }, 500);
+  }
+});
+
+
 serve(app)
 console.log(`Server is running on http://localhost:${3000}`)
