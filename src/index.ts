@@ -197,7 +197,28 @@ app.get("/orders/:id", async (c) => {
       orderItem: true,
     },
   });
-  return c.json(order)
+  return c.json(order)}
+  catch(error){
+    return c.json({ message: "Error finding order" }, 404);
+  }
+})
+
+app.patch("/orders/:id/status", async (c) => {
+  const {id} = c.req.param();
+  const {status} = await c.req.json();
+  try{
+  const order = await prisma.order.update({
+    where: {
+      id: Number(id),
+    },
+    data: {
+      status: status,
+    },
+  });
+  return c.json(order)}
+  catch(error){
+    return c.json({ message: "Error finding order" }, 404);
+  }
 })
 
 serve(app)
