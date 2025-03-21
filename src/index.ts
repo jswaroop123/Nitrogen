@@ -235,5 +235,33 @@ app.get("/customers/:id/orders", async (c)=>{
   }
 })
 
+app.get("/restaurant/:id/revenue", async (c) => {
+  const { id } = c.req.param();
+  try {
+    const isExist = await prisma.restaurants.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!isExist) {
+      return c.json({ message: "Restaurant not found" }, 404);
+    }
+
+    const totalRevenue = await prisma.order.aggregate({
+      _sum: {
+        totalPrice: true,
+      },
+      where: {
+        restaurantId: Number(id),
+      },
+    });
+    return c.json({
+      totalRevenue: totalRevenue._sum.totalPrice,
+      
+    })    
+  } catch (error) {
+    return c.json({ message: "Failed to fetch menu items" }, 500);
+  }
+});
+
 serve(app)
 console.log(`Server is running on http://localhost:${3000}`)
