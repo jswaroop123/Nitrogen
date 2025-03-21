@@ -186,5 +186,19 @@ app.post("/orders", async (context) => {
   }
 });
 
+app.get("/orders/:id", async (c) => {
+  const {id} = c.req.param();
+  try{
+  const order = await prisma.order.findUnique({
+    where: {
+      id: Number(id),
+    },
+    include: {
+      orderItem: true,
+    },
+  });
+  return c.json(order)
+})
+
 serve(app)
 console.log(`Server is running on http://localhost:${3000}`)
