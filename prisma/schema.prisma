@@ -33,7 +33,7 @@ model Restaurants {
 model MenuItem {
   id           Int         @id @default(autoincrement())
   restaurantId Int
-  namE         String
+  name         String
   price        Decimal
   isAvailable  Boolean     @default(true)
   orderItems   OrderItem[]
