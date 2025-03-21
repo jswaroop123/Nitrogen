@@ -4,7 +4,7 @@ import { Hono } from 'hono'
 
 const app = new Hono()
 const prisma = new PrismaClient()
-
+// add customer data
 app.post("/customer", async (c)=>{
   const {id,name, email, phoneNumber, address} = await c.req.json()
   const customer = await prisma.customers.create({
@@ -18,12 +18,12 @@ app.post("/customer", async (c)=>{
   })
   return c.json(customer)
 })
-
+// display all customers details(extra function)
 app.get("/customer", async (c)=>{
   const customers = await prisma.customers.findMany()
   return c.json(customers)
 })
-
+// display customers by id
 app.get("/customer/:id", async (c)=>{
   const {id} = c.req.param()
   const customer = await prisma.customers.findUnique({
@@ -33,7 +33,7 @@ app.get("/customer/:id", async (c)=>{
   })
   return c.json(customer)
 })
-
+// add restaurant data
 app.post("/restaurant", async (c)=>{
   const {name, location} = await c.req.json();
   const restaurant = await prisma.restaurants.create({
@@ -44,12 +44,12 @@ app.post("/restaurant", async (c)=>{
   })
   return c.json(restaurant)
 })
-
+// display all restaurants
 app.get("/restaurant", async (c)=>{
   const restaurants = await prisma.restaurants.findMany()
   return c.json(restaurants)
 })
-
+// display restaurants by id
 app.get("restaurant/:id", async (c)=>{  
   const {id} = c.req.param()
   const restaurant = await prisma.restaurants.findUnique({
@@ -59,7 +59,7 @@ app.get("restaurant/:id", async (c)=>{
   })
   return c.json(restaurant)
 })
-
+// add menu details
 app.post("/restaurants/:id/menu", async (context) => {
   const { id } = context.req.param();
   const { name, price } = await context.req.json();
@@ -86,7 +86,7 @@ app.post("/restaurants/:id/menu", async (context) => {
     return context.json({ message: "Error finding restaurant" }, 404);
   }
 }); 
-
+// display menu by id
 app.patch("/menuItem/:id", async (c) => {
   const { id } = c.req.param();
   const { isAvailable, price } = await c.req.json();
@@ -113,7 +113,7 @@ app.patch("/menuItem/:id", async (c) => {
     return c.json({ message: "Failed to update menu item" }, 500);
   }
 });
-
+// place orders
 app.post("/orders", async (context) => {
   const { customerId, restaurantId, items } = await context.req.json();
 
@@ -185,7 +185,7 @@ app.post("/orders", async (context) => {
     return context.json({ message: "Failed to place order" }, 500);
   }
 });
-
+// display all orders
 app.get("/orders/:id", async (c) => {
   const {id} = c.req.param();
   try{
@@ -202,7 +202,7 @@ app.get("/orders/:id", async (c) => {
     return c.json({ message: "Error finding order" }, 404);
   }
 })
-
+// display orders by id
 app.patch("/orders/:id/status", async (c) => {
   const {id} = c.req.param();
   const {status} = await c.req.json();
@@ -220,7 +220,7 @@ app.patch("/orders/:id/status", async (c) => {
     return c.json({ message: "Error finding order" }, 404);
   }
 })
-
+// display orders by customer
 app.get("/customers/:id/orders", async (c)=>{
   const {id} = c.req.param();
   try{
@@ -234,7 +234,7 @@ app.get("/customers/:id/orders", async (c)=>{
     return c.json({ message: "Error finding order" }, 404);
   }
 })
-
+// display orders by restaurant
 app.get("/restaurant/:id/revenue", async (c) => {
   const { id } = c.req.param();
   try {
@@ -262,7 +262,7 @@ app.get("/restaurant/:id/revenue", async (c) => {
     return c.json({ message: "Failed to fetch menu items" }, 500);
   }
 });
-
+// display top menu item
 app.get("/menu/top-items", async (context) => {
   try {
     const topItems = await prisma.orderItem.groupBy({
@@ -292,7 +292,7 @@ app.get("/menu/top-items", async (context) => {
     return context.json({ message: "Error retrieving top menu item" }, 500);
   }
 });
-
+// display orders by customer
 app.get("/customers/:id/orders", async (context) => {
   const id = context.req.param("id");
   try {
